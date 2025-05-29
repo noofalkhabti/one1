@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>اختبار لغتي مع صورة</title>
+  <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>اختبار لغتي - مع صور</h1>
+      <div class="status-bar">
+        <span id="question-number">السؤال 1 من 2</span>
+        <span id="timer">30:00 ⏳</span>
+        <span id="score">الدرجة: 0 / 100 🏆</span>
+      </div>
+    </header>
+    <main>
+      <div id="question-container">
+        <p id="question"></p>
+        <img id="question-image" src="" alt="" style="max-width:100%;display:none;margin-bottom:15px;">
+      </div>
+      <div id="choices" class="choices-grid"></div>
+      <div class="buttons">
+        <button onclick="prevQuestion()">السابق</button>
+        <button onclick="nextQuestion()" id="next-btn" disabled>التالي</button>
+        <button onclick="endQuiz()" class="stop">توقف</button>
+      </div>
+    </main>
+    <footer id="result" style="display:none;"></footer>
+  </div>
+  <script>
+const questions = [
+  {
+    question: "ما اسم هذا الحيوان؟",
+    image: "images/camel.jpg",
+    choices: ["أسد", "جمل", "غزال", "فيل"],
+    answer: 1
+  },
+  {
+    question: "ما نوع الكلمة (مدرسة)؟",
+    image: "",
+    choices: ["اسم", "فعل", "حرف", "أداة"],
+    answer: 0
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selected = false;
+let timer = 1800;
+let timerInterval;
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    let minutes = Math.floor(timer / 60);
+    let seconds = timer % 60;
+    document.getElementById("timer").textContent = minutes + ":" + (seconds < 10 ? "0" + seconds : seconds) + " ⏳";
+    timer--;
+    if (timer < 0) {
+      clearInterval(timerInterval);
+      endQuiz();
+    }
+  }, 1000);
+}
+
+function loadQuestion() {
+  const q = questions[currentQuestion];
+  document.getElementById("question").textContent = q.question;
+  document.getElementById("question-number").textContent = "السؤال " + (currentQuestion + 1) + " من " + questions.length;
+
+  const img = document.getElementById("question-image");
+  if (q.image) {
+    img.src = q.image;
+    img.style.display = "block";
+  } else {
+    img.style.display = "none";
+  }
+
+  const choicesBox = document.getElementById("choices");
+  choicesBox.innerHTML = "";
+  document.getElementById("next-btn").disabled = true;
+  selected = false;
+
+  q.choices.forEach((choice, index) => {
+    const div = document.createElement("div");
+    div.textContent = choice;
+    div.onclick = () => selectAnswer(div, index);
+    choicesBox.appendChild(div);
+  });
+}
+
+function selectAnswer(el, index) {
+  if (selected) return;
+  selected = true;
+  const correct = questions[currentQuestion].answer;
+  document.querySelectorAll("#choices div").forEach((div, i) => {
+    div.style.pointerEvents = "none";
+    div.classList.add(i === correct ? "correct" : (i === index ? "incorrect" : ""));
+  });
+  if (index === correct) score += Math.floor(100 / questions.length);
+  document.getElementById("score").textContent = "الدرجة: " + score + " / 100 🏆";
+  document.getElementById("next-btn").disabled = false;
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < questions.length) loadQuestion();
+  else endQuiz();
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    loadQuestion();
+  }
+}
+
+function endQuiz() {
+  clearInterval(timerInterval);
+  document.querySelector("main").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerHTML = `✔️ نتيجتك: ${score} من 100<br><button onclick="location.reload()">إعادة</button>`;
+}
+
+window.onload = function () {
+  loadQuestion();
+  startTimer();
+}
+  </script>
+</body>
+</html>
